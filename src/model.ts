@@ -1,0 +1,12 @@
+export type Role = 'parent' | 'student';
+export type Context = { role: Role; studentId: string };
+export type Profile = { id: string; name: string; academy: string; className: string; teacher: string };
+export type Session = { id: string; studentId: string; title: string; date: string; time: string; room: string; status: string; checkIn: string; checkOut: string; intention: string; reason: string };
+export type Pass = { id: string; title: string; total: number; remaining: number; expires: string };
+export type Invoice = { id: string; title: string; amount: number; dueDate: string; status: string; paidAt: string };
+export type Notice = { id: string; title: string; body: string; date: string; poll: number; isRead: number; choice: string | null };
+export type Message = { id: string; sender: string; body: string; createdAt: string };
+export type PortalData = { context: Context; profiles: Profile[]; profile: Profile; sessions: Session[]; passes: Pass[]; invoices: Invoice[]; notices: Notice[]; messages: Message[] };
+export const sections = ['home','schedule','passes','community','payments','notifications','profile'] as const;
+export type Section = typeof sections[number];
+export const sectionLabels: Record<Section,string> = { home:'홈',schedule:'일정·출결',passes:'수강권',community:'소통',payments:'결제',notifications:'알림',profile:'내 정보' };

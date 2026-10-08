@@ -1,0 +1,10 @@
+CREATE TABLE "Profile" ("id" TEXT PRIMARY KEY, "name" TEXT NOT NULL, "academy" TEXT NOT NULL, "className" TEXT NOT NULL, "teacher" TEXT NOT NULL);
+CREATE TABLE "Session" ("id" TEXT PRIMARY KEY, "studentId" TEXT NOT NULL REFERENCES "Profile"("id"), "title" TEXT NOT NULL, "date" TEXT NOT NULL, "time" TEXT NOT NULL, "room" TEXT NOT NULL, "status" TEXT NOT NULL, "checkIn" TEXT NOT NULL, "checkOut" TEXT NOT NULL, "intention" TEXT NOT NULL DEFAULT '', "reason" TEXT NOT NULL DEFAULT '');
+CREATE TABLE "Pass" ("id" TEXT PRIMARY KEY, "studentId" TEXT NOT NULL REFERENCES "Profile"("id"), "title" TEXT NOT NULL, "total" INTEGER NOT NULL, "remaining" INTEGER NOT NULL, "expires" TEXT NOT NULL);
+CREATE TABLE "Invoice" ("id" TEXT PRIMARY KEY, "studentId" TEXT NOT NULL REFERENCES "Profile"("id"), "title" TEXT NOT NULL, "amount" INTEGER NOT NULL, "dueDate" TEXT NOT NULL, "status" TEXT NOT NULL, "paidAt" TEXT NOT NULL DEFAULT '');
+CREATE TABLE "Notice" ("id" TEXT PRIMARY KEY, "studentId" TEXT NOT NULL REFERENCES "Profile"("id"), "title" TEXT NOT NULL, "body" TEXT NOT NULL, "date" TEXT NOT NULL, "poll" INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE "Receipt" ("id" TEXT PRIMARY KEY, "studentId" TEXT NOT NULL REFERENCES "Profile"("id"), "noticeId" TEXT NOT NULL REFERENCES "Notice"("id"), "role" TEXT NOT NULL);
+CREATE TABLE "Vote" ("id" TEXT PRIMARY KEY, "studentId" TEXT NOT NULL REFERENCES "Profile"("id"), "noticeId" TEXT NOT NULL REFERENCES "Notice"("id"), "role" TEXT NOT NULL, "choice" TEXT NOT NULL);
+CREATE TABLE "Message" ("id" TEXT PRIMARY KEY, "studentId" TEXT NOT NULL REFERENCES "Profile"("id"), "sender" TEXT NOT NULL, "body" TEXT NOT NULL, "createdAt" TEXT NOT NULL);
+CREATE INDEX "session_student" ON "Session" ("studentId", "date");
+CREATE INDEX "message_student" ON "Message" ("studentId", "createdAt");

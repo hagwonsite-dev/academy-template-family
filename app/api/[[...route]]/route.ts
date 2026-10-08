@@ -1,0 +1,16 @@
+import { Hono } from 'hono';
+import { handle } from 'hono/vercel';
+import { bodyLimit } from 'hono/body-limit';
+import { context,loadPortal,mutate,PortalError } from '../../../src/portal.ts';
+import { database } from '../../../src/runtime.ts';
+import { demoSeed } from '../../../src/seed.ts';
+import { authorize } from '../../../src/access.ts';
+export const runtime='nodejs';
+const app=new Hono().basePath('/api');
+app.use('*',async(c,next)=>{const status=authorize(Object.fromEntries(c.req.raw.headers),c.req.method,process.env);if(status!==200)return new Response('접근할 수 없어요.',{status});c.header('Cache-Control','private, no-store');await next();});
+app.use('*',bodyLimit({maxSize:4096,onError:c=>c.json({error:'입력 내용이 너무 길어요.'},413)}));
+app.post('/initialize',async c=>{if(process.env.PUBLIC_DEMO==='1'||!process.env.APP_PASSWORD)throw new PortalError(403,'관리자만 준비할 수 있어요.');const db=await database();for(const statement of demoSeed())await db.query(statement.sql,statement.args);return c.json({ok:true});});
+app.get('/portal',async c=>c.json(await loadPortal(await database(),context(c.req.query('role')??null,c.req.query('student')??null))));
+app.post('/portal',async c=>{let body:unknown;try{body=await c.req.json();}catch{throw new PortalError(400,'요청 형식을 확인해 주세요.');}await mutate(await database(),context(c.req.query('role')??null,c.req.query('student')??null),body);return c.json({ok:true});});
+app.onError((error,c)=>c.json({error:error instanceof PortalError?error.message:'잠시 후 다시 시도해 주세요.'},error instanceof PortalError?(error.status as 400|403|404|409|503):500));
+export const GET=handle(app);export const POST=handle(app);

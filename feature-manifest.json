@@ -1,0 +1,23 @@
+{
+  "features": [
+    "자녀별 일정·출결",
+    "수강권 조회",
+    "공지·투표",
+    "선생님 쪽지",
+    "청구서 결제 체험"
+  ],
+  "entities": [
+    "Profile",
+    "Session",
+    "Pass",
+    "Invoice",
+    "Notice",
+    "Receipt",
+    "Vote",
+    "Message"
+  ],
+  "roles": [
+    "demo-parent",
+    "demo-student"
+  ]
+}

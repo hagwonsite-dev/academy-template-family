@@ -1,0 +1,15 @@
+CREATE TABLE "FamilyPolicy" ("id" TEXT PRIMARY KEY, "studentId" TEXT NOT NULL UNIQUE REFERENCES "Profile"("id"), "advanceAttendance" INTEGER NOT NULL DEFAULT 1);
+CREATE TABLE "Teacher" ("id" TEXT PRIMARY KEY, "studentId" TEXT NOT NULL REFERENCES "Profile"("id"), "name" TEXT NOT NULL, "subject" TEXT NOT NULL);
+CREATE TABLE "PassUsage" ("id" TEXT PRIMARY KEY, "studentId" TEXT NOT NULL REFERENCES "Profile"("id"), "passId" TEXT NOT NULL REFERENCES "Pass"("id"), "date" TEXT NOT NULL, "title" TEXT NOT NULL, "kind" TEXT NOT NULL, "units" INTEGER NOT NULL, "remaining" INTEGER NOT NULL);
+CREATE TABLE "Refund" ("id" TEXT PRIMARY KEY, "studentId" TEXT NOT NULL REFERENCES "Profile"("id"), "invoiceId" TEXT NOT NULL REFERENCES "Invoice"("id"), "amount" INTEGER NOT NULL, "reason" TEXT NOT NULL, "createdAt" TEXT NOT NULL);
+CREATE TABLE "Comment" ("id" TEXT PRIMARY KEY, "studentId" TEXT NOT NULL REFERENCES "Profile"("id"), "noticeId" TEXT NOT NULL REFERENCES "Notice"("id"), "parentId" TEXT REFERENCES "Comment"("id"), "role" TEXT NOT NULL, "body" TEXT NOT NULL, "createdAt" TEXT NOT NULL, "updatedAt" TEXT NOT NULL, "deleted" INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE "NoticeMedia" ("id" TEXT PRIMARY KEY, "studentId" TEXT NOT NULL REFERENCES "Profile"("id"), "noticeId" TEXT NOT NULL REFERENCES "Notice"("id"), "asset" TEXT NOT NULL, "caption" TEXT NOT NULL);
+ALTER TABLE "Invoice" ADD COLUMN IF NOT EXISTS "paymentId" TEXT;
+ALTER TABLE "Invoice" ADD COLUMN IF NOT EXISTS "discount" INTEGER;
+ALTER TABLE "Notice" ADD COLUMN IF NOT EXISTS "category" TEXT;
+ALTER TABLE "Notice" ADD COLUMN IF NOT EXISTS "important" INTEGER;
+ALTER TABLE "Message" ADD COLUMN IF NOT EXISTS "teacherId" TEXT;
+ALTER TABLE "Message" ADD COLUMN IF NOT EXISTS "attachments" TEXT;
+CREATE INDEX "usage_student_pass" ON "PassUsage" ("studentId", "passId", "date");
+CREATE INDEX "comment_student_notice" ON "Comment" ("studentId", "noticeId", "createdAt");
+CREATE INDEX "message_teacher" ON "Message" ("studentId", "teacherId", "createdAt");

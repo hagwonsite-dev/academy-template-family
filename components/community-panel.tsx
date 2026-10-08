@@ -1,0 +1,19 @@
+'use client';
+import {useState,type ReactNode} from 'react';
+import Image from 'next/image';
+import {Button} from './ui/button';
+import {Card,CardContent} from './ui/card';
+import {Label} from './ui/label';
+import {Textarea} from './ui/textarea';
+import {NativeSelect,NativeSelectOption} from './ui/native-select';
+import {Alert,AlertDescription} from './ui/alert';
+import {mediaAssets} from './notice-detail';
+import type {Act} from './payments-panel';
+import type {Notice,PortalData} from '../src/model';
+function attachments(value:string):string[]{try{const parsed:unknown=JSON.parse(value);return Array.isArray(parsed)?parsed.filter((v):v is string=>typeof v==='string'&&!!mediaAssets[v]):[];}catch{return [];}}
+export function CommunityPanel({data,act,busy,renderNotice}:{data:PortalData;act:Act;busy:boolean;renderNotice:(notice:Notice)=>ReactNode}){
+ const [filter,setFilter]=useState('all'),[teacher,setTeacher]=useState(data.teachers.find(t=>t.id.endsWith('-teacher'))?.id??''),[photos,setPhotos]=useState<string[]>([]);
+ const notices=data.notices.filter(n=>filter==='all'||(filter==='poll'?!!n.poll:filter==='album'?n.category==='album':!!n.important));
+ const messages=data.messages.filter(m=>m.teacherId===teacher);
+ return <div className="two-columns"><section><h2 className="subheading">공지와 앨범</h2><Label htmlFor="notice-filter">소식 종류</Label><NativeSelect id="notice-filter" value={filter} onChange={e=>setFilter(e.target.value)}><NativeSelectOption value="all">전체 소식</NativeSelectOption><NativeSelectOption value="important">중요 공지</NativeSelectOption><NativeSelectOption value="poll">투표</NativeSelectOption><NativeSelectOption value="album">앨범</NativeSelectOption></NativeSelect><Card className="notice-list"><CardContent>{notices.length?notices.map(renderNotice):<p className="muted">이 종류의 소식은 아직 없어요.</p>}</CardContent></Card></section><section><h2 className="subheading">선생님과 쪽지</h2>{data.context.role==='parent'?<Card><CardContent><p className="muted">학부모가 먼저 남기는 체험용 대화예요. 실제 선생님에게 전달되거나 알림이 발송되지 않아요.</p><Label htmlFor="teacher">대화할 선생님</Label><NativeSelect id="teacher" value={teacher} disabled={busy} onChange={e=>{setTeacher(e.target.value);setPhotos([]);}}>{data.teachers.map(t=><NativeSelectOption key={t.id} value={t.id}>{t.name} · {t.subject}</NativeSelectOption>)}</NativeSelect><div className="messages" aria-label="선택한 선생님과 대화">{messages.length?messages.map(m=><div key={m.id} className={'message '+(m.sender==='teacher'?'received':'sent')}><small>{m.sender==='teacher'?'선생님':'학부모'}</small><p>{m.body}</p>{attachments(m.attachments).map(a=><Image key={a} src={mediaAssets[a].src} alt={mediaAssets[a].label+' · 체험 첨부'} width={240} height={160} className="message-image"/>)}<time>{new Date(m.createdAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})}</time></div>):<p className="muted">아직 대화가 없어요. 첫 쪽지를 남겨보세요.</p>}</div><form key={teacher} onSubmit={async e=>{e.preventDefault();const form=e.currentTarget;if(await act({action:'message',teacherId:teacher,body:new FormData(form).get('body'),attachments:photos},'체험 쪽지를 저장했어요. 실제 발송은 없어요.',false)){form.reset();setPhotos([]);}}}><Label htmlFor="message">쪽지 내용</Label><Textarea id="message" name="body" maxLength={1000} required placeholder="개인정보 없이 체험 내용을 적어주세요."/><p className="muted">첨부 체험: 제공된 가상 그림을 최대 3장 선택할 수 있어요.</p><div className="attachment-choices">{Object.entries(mediaAssets).map(([id,a])=><Button key={id} type="button" size="sm" variant={photos.includes(id)?'secondary':'outline'} aria-pressed={photos.includes(id)} disabled={busy} onClick={()=>setPhotos(prev=>prev.includes(id)?prev.filter(p=>p!==id):[...prev,id])}>{a.label}</Button>)}</div><Button className="send-button" disabled={busy||!teacher} type="submit">체험 쪽지 보내기</Button></form></CardContent></Card>:<Alert><AlertDescription>이 예시는 학부모 쪽지 흐름을 제공해요. 온하이의 학생 쪽지 권한은 공개 자료에서 확인하지 못했어요.</AlertDescription></Alert>}</section></div>;
+}

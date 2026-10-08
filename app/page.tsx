@@ -11,7 +11,7 @@ export default async function Page({searchParams}:{searchParams:Promise<Record<s
  const section=value('view')??'home';if(!sections.includes(section as Section))notFound();
  let ctx;
  try {
-  ctx=context(value('role'),value('student'));if(ctx.role==='student'&&section==='payments')notFound();
+  ctx=context(value('role'),value('student'));
  }catch(error){if(error instanceof PortalError&&error.status===403)notFound();throw error;}
  const data=await loadPortal(await database(),ctx).catch(error=>{if(error instanceof PortalError&&error.status===503)return null;throw error;});
  if(!data)return <Setup allowed={process.env.PUBLIC_DEMO!=='1'&&Boolean(process.env.APP_PASSWORD)}/>;

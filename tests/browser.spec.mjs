@@ -5,6 +5,7 @@ import {mkdtemp,rm,mkdir} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 const require=createRequire(import.meta.url);
+const screenshots=join(tmpdir(),'academy-family-preview');
 test('family portal: responsive roles, scoped persistent actions and accessible dialogs',async({browser,request})=>{
  const directory=await mkdtemp(join(tmpdir(),'academy-family-'));
  const env={...process.env,DATABASE_FILE:join(directory,'app.sqlite'),PUBLIC_DEMO:'1',READ_ONLY:'0'};
@@ -19,10 +20,10 @@ test('family portal: responsive roles, scoped persistent actions and accessible 
   await page.goto(base);await expect(page.getByRole('heading',{level:1})).toContainText('김하늘');
   expect((await request.get(base+'/api/portal?role=student&student=jiwoo')).status()).toBe(403);
   expect((await request.post(base+'/api/portal',{data:{action:'message',body:'foreign origin'},headers:{origin:'https://example.com'}})).status()).toBe(403);
-  await mkdir('/private/tmp/academy-family-preview',{recursive:true});
+  await mkdir(screenshots,{recursive:true});
   for(const width of [390,768,1440,1920]){
    await page.setViewportSize({width,height:960});await page.goto(base);
-   await page.screenshot({path:'/private/tmp/academy-family-preview/home-'+width+'.png',fullPage:true});
+   await page.screenshot({path:join(screenshots,'home-'+width+'.png'),fullPage:true});
    for(const view of ['home','schedule','passes','community','payments','notifications','profile']){
     await page.goto(base+'/?view='+view);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),view+' '+width).toBe(true);
     expect(await page.locator('button:visible,input:visible,textarea:visible,select:visible').evaluateAll(nodes=>nodes.every(n=>n.hasAttribute('data-slot')))).toBe(true);
